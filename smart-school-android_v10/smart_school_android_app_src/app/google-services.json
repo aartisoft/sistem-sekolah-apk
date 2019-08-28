@@ -1,0 +1,44 @@
+{
+  "project_info": {
+    "project_number": "430382878403",
+    "firebase_url": "https://smart-school-demo-fb30b.firebaseio.com",
+    "project_id": "smart-school-demo-fb30b",
+    "storage_bucket": "smart-school-demo-fb30b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:430382878403:android:63041e3da1ae4e78",
+        "android_client_info": {
+          "package_name": "com.qdocs.smartschool"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "430382878403-8v0nl48f0q1a5j8hq3budb2age72t4cq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.qdocs.smartschool",
+            "certificate_hash": "36e3ea76cace372aed3e06f63a69b9474b2457c9"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqd7xKRfDulnnK93DCBhyryhmPXltBg_Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "430382878403-d4nn0uhe8ba5as6e0pbonpsto2q2jet6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

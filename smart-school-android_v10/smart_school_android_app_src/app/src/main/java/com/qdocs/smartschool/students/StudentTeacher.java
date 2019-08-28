@@ -1,0 +1,155 @@
+package com.qdocs.smartschool.students;
+
+import android.app.ProgressDialog;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ListView;
+import android.widget.Toast;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.qdocs.smartschool.adapters.StudentTeacherAdapter;
+import com.qdocs.smartschool.BaseActivity;
+import com.qdocs.smartschool.R;
+import com.qdocs.smartschool.utils.Constants;
+import com.qdocs.smartschool.utils.Utility;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
+
+public class StudentTeacher extends BaseActivity {
+
+    ListView teacherList;
+    StudentTeacherAdapter adapter;
+
+    ArrayList <String> teacherNameList = new ArrayList<String>();
+    ArrayList <String> teacherEmailList = new ArrayList<String>();
+    ArrayList <String> teacherContactList = new ArrayList<String>();
+
+    public Map<String, String> params = new Hashtable<String, String>();
+    public Map<String, String>  headers = new HashMap<String, String>();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        LayoutInflater inflater = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
+        View contentView = inflater.inflate(R.layout.student_teacher_activity, null, false);
+        mDrawerLayout.addView(contentView, 0);
+
+        titleTV.setText(getApplicationContext().getString(R.string.teachers));
+
+        teacherList = (ListView) findViewById(R.id.studentTeacher_listView);
+        adapter = new StudentTeacherAdapter(StudentTeacher.this, teacherNameList, teacherEmailList,
+                teacherContactList);
+        teacherList.setAdapter(adapter);
+
+        params.put("classId", Utility.getSharedPreferences(getApplicationContext(), Constants.classId));
+        params.put("sectionId", Utility.getSharedPreferences(getApplicationContext(), Constants.sectionId));
+        JSONObject obj=new JSONObject(params);
+        Log.e("params ", obj.toString());
+
+        getDataFromApi(obj.toString());
+
+    }
+
+    private void getDataFromApi (String bodyParams) {
+
+        final ProgressDialog pd = new ProgressDialog(this);
+        pd.setMessage("Loading");
+        pd.setCancelable(false);
+        pd.show();
+
+        final String requestBody = bodyParams;
+
+        String url = Utility.getSharedPreferences(getApplicationContext(), "apiUrl")+Constants.getTeacherListUrl;
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String result) {
+                if (result != null) {
+                    pd.dismiss();
+                    try {
+                        Log.e("Result", result);
+                        JSONObject object = new JSONObject(result);
+
+                        String success = object.getString("success");
+                        if (success.equals("1")) {
+
+                            JSONArray dataArray = object.getJSONArray("data");
+                            Log.e("length", dataArray.length()+"..");
+                            for(int i = 0; i < dataArray.length(); i++) {
+                                teacherNameList.add(dataArray.getJSONObject(i).getString("name") + " " + dataArray.getJSONObject(i).getString("surname") );
+                                teacherEmailList.add(dataArray.getJSONObject(i).getString("email"));
+                                teacherContactList.add(dataArray.getJSONObject(i).getString("contact_no"));
+                            }
+                            adapter.notifyDataSetChanged();
+                        } else {
+                            Toast.makeText(getApplicationContext(), object.getString("errorMsg"), Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    pd.dismiss();
+                    Toast.makeText(getApplicationContext(), R.string.noInternetMsg, Toast.LENGTH_SHORT).show();
+                }
+            }
+        },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        pd.dismiss();
+                        Log.e("Volley Error", volleyError.toString());
+                        Toast.makeText(StudentTeacher.this, R.string.slowInternetMsg, Toast.LENGTH_LONG).show();
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+
+                headers.put("Client-Service", Constants.clientService);
+                headers.put("Auth-Key", Constants.authKey);
+                headers.put("Content-Type", Constants.contentType);
+                headers.put("User-ID", Utility.getSharedPreferences(getApplicationContext(), "userId"));
+                headers.put("Authorization", Utility.getSharedPreferences(getApplicationContext(), "accessToken"));
+                Log.e("Headers", headers.toString());
+                return headers;
+            }
+
+            @Override
+            public String getBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                try {
+                    return requestBody == null ? null : requestBody.getBytes("utf-8");
+                } catch (UnsupportedEncodingException uee) {
+                    VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", requestBody, "utf-8");
+                    return null;
+                }
+            }
+        };
+        //Creating a Request Queue
+        RequestQueue requestQueue = Volley.newRequestQueue(StudentTeacher.this);
+
+        //Adding request to the queue
+        requestQueue.add(stringRequest);
+    }
+
+}
